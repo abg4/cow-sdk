@@ -4,7 +4,7 @@ import { AcrossDepositEvent, CowTradeEvent, DepositStatusResponse, SuggestedFees
 import { AcrossQuoteResult } from './AcrossBridgeProvider'
 import { ACROSS_DEPOSIT_EVENT_INTERFACE, COW_TRADE_EVENT_INTERFACE } from './const/interfaces'
 import { ACROSS_TOKEN_MAPPING, AcrossChainConfig } from './const/tokens'
-import { ACROSS_SPOOK_CONTRACT_ADDRESSES } from './const/contracts'
+import { ACROSS_SPOKE_POOL_CONTRACT_ADDRESSES } from './const/contracts'
 import { COW_PROTOCOL_SETTLEMENT_CONTRACT_ADDRESS, SupportedChainId, TargetChainId } from '@cowprotocol/sdk-config'
 import { getBigNumber, OrderKind } from '@cowprotocol/sdk-order-book'
 import { getGlobalAdapter, Log } from '@cowprotocol/sdk-common'
@@ -85,10 +85,6 @@ function toAmountsAndCosts(
   // Calculate the fee
   const feeSellToken = sellAmountBeforeFee - applyPctFee(sellAmountBeforeFee, totalRelayerFeePct)
   const feeBuyToken = buyAmountBeforeFee - buyAmountAfterFee
-  // TODO: Do we need to use any of the other fees, or they are included in totalRelayFee? I know 'lpFee' fee is, as stated in the docs, but not sure about the others.
-  // const relayerCapitalFee = suggestedFees.relayerCapitalFee
-  // const relayerGasFee = suggestedFees.relayerGasFee
-  // const lpFee = suggestedFees.lpFee
 
   // Apply slippage
   const buyAmountAfterSlippage = applyBps(buyAmountAfterFee, slippageBps)
@@ -180,9 +176,9 @@ export function mapAcrossStatusToBridgeStatus(status: DepositStatusResponse['sta
 }
 
 export function getAcrossDepositEvents(chainId: SupportedChainId, logs: Log[]): AcrossDepositEvent[] {
-  const spookContractAddress = ACROSS_SPOOK_CONTRACT_ADDRESSES[chainId]?.toLowerCase()
+  const spokePoolContractAddress = ACROSS_SPOKE_POOL_CONTRACT_ADDRESSES[chainId]?.toLowerCase()
 
-  if (!spookContractAddress) {
+  if (!spokePoolContractAddress) {
     return []
   }
 
@@ -191,7 +187,7 @@ export function getAcrossDepositEvents(chainId: SupportedChainId, logs: Log[]): 
 
   // Get accross deposit events
   const depositEvents = logs.filter((log) => {
-    return log.address.toLocaleLowerCase() === spookContractAddress && log.topics[0] === ACROSS_DEPOSIT_EVENT_TOPIC
+    return log.address.toLocaleLowerCase() === spokePoolContractAddress && log.topics[0] === ACROSS_DEPOSIT_EVENT_TOPIC
   })
 
   // Parse logs
